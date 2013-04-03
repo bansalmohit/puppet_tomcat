@@ -1,0 +1,5 @@
+<Context path="/">
+  <Resource name="jdbc/SnapdealDS" auth="Container" type="javax.sql.DataSource" maxActive="100" maxIdle="20" maxWait="15000" username="<%= snapdeal_db_user %>" password="<%= snapdeal_db_pswd %>" driverClassName="com.mysql.jdbc.Driver" removeAbandoned="true" removeAbandonedTimeout="30" url="jdbc:mysql://<%= snapdeal_db_ip %>:3306/snapdeal?autoReconnect=true"/>
+<Resource name="jdbc/SnapdealRepDS" auth="Container" type="javax.sql.DataSource" maxActive="100" maxIdle="20" maxWait="15000" username="<%= snapdeal_db_user" password="<%= snapdeal_db_pswd %>" driverClassName="com.mysql.jdbc.Driver" removeAbandoned="true" removeAbandonedTimeout="30" url="jdbc:mysql://<%= snapdeal_db_ip %>:3306/snapdeal?autoReconnect=true"/>
+  <Resource name="jdbc/SnapdealBaseDS" auth="Container" type="javax.sql.DataSource" maxActive="100" maxIdle="20" maxWait="15000" username=" <%= snapdeal_db_user %>" password="<%= snapdeal_db_pswd %>" driverClassName="com.mysql.jdbc.Driver" removeAbandoned="true" removeAbandonedTimeout="30" url="jdbc:mysql://<%= snapdeal_db_ip %>:3306/snapdeal?autoReconnect=true"/>
+</Context>
