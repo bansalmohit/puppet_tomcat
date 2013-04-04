@@ -1,4 +1,4 @@
-class tomcat($tomcat_port= 76 , $component=catalog-tomcat,){
+class tomcat($tomcat_port= 8080, $component=tomcat,){
   $server = "/usr/local/${component}"
 
 
@@ -21,107 +21,69 @@ class tomcat($tomcat_port= 76 , $component=catalog-tomcat,){
     home       => '/home/tomcat',
     shell      => '/bin/bash',
     managehome => true,
-    before     => File['release'],
+    before     => File['release-dir'],
   }
 
-  exec {"untar_folder":
-    user     => 'tomcat',
-    command   => "tar -xvf /etc/puppetlabs/puppet/modules/tomcat/files/base-tomcat.tar",
-    logoutput => true,
-    before    => File['directory'],  
+  file{ 'copy-tomcat':
+      name    => 'base-tomcat.tar',
+      path    => '/home/tomcat/base-tomcat.tar',
+      recurse => true,
+      source  => 'puppet:///modules/tomcat/base-tomcat.tar',
+      owner   => 'tomcat',
+      mode    => '0640',
+  }
+
+
+  exec {"extract-tomcat":
+    user        => 'tomcat',
+    command     => "tar -xvf /home/tomcat/base-tomcat.tar",
     refreshonly => true,
+    require     => File['copy-tomcat'],
   }
 
-  file { 'directory':
+  file { 'component-directory':
     name    => "${component}",
     path    => "${server}",
     recurse   => true,
     ensure    => [ ['directory'] , ['present']],
-    before  => [ File[ ['catalina.sh'] , ['server.xml']]],
-    owner   => 'tomcat',
+       owner   => 'tomcat',
     group   => 'tomcat',
     mode    => '0640',
-    source => 'puppet:///modules/tomcat/usr/local/base-tomcat7/',
-
+   source => "/home/tomcat/base-tomcat/",
+    
   }
-
-  file { "catalina.sh":
-    ensure  => present,
-    path    => "${server}/bin/catalina.sh",
-    content => template('tomcat/catalina.sh'),
-  }
+    file { "catalina.sh":
+    ensure => present,
+   path    => "${server}/bin/catalina.sh",
+   content => template('tomcat/catalina.sh'),
+  require  => File['component-directory'],
+    }
   file { "server.xml" :
-    ensure  => present, 
-    path    => "${server}/conf/server.xml",
-    content => template('tomcat/server.xml'),
+   ensure  => present, 
+   path    => "${server}/conf/server.xml",
+   content => template('tomcat/server.xml'),
+   require => File['component-directory'],
   }
 
-  file { 'release':
-    ensure  => [ [ 'directory'],['present']],
-    path    => '/home/tomcat/release',
-    owner   => 'tomcat',
-    mode    => '0640',
-    before  => File['startServer.sh'],
+  file { 'release-dir':
+    name   => 'release',
+    ensure => [ [ 'directory'],['present']],
+    path   => '/home/tomcat/release',
+    owner  => 'tomcat',
+    mode   => '0640',
   }
 
-  file { 'startServer.sh':
-    ensure  => present,
-    require => User['tomcat'],
-    content => 'puppet:///modules/tomcat/startServer.sh',
-    path    => '/home/tomcat/release/startServer.sh',
+  file { 'scriptDir':
+    ensure  => [['present'],['directory']],
+    require => [ [User['tomcat']],[File['release-dir']]],
+    recurse => true,
+    content => 'puppet:///modules/tomcat/scriptDir/',
+    path    => '/home/tomcat/release/scriptDir/',
     owner   => 'tomcat',
     group   => 'tomcat',
     mode    => '0640', 
+ 
   }
-  file { 'stopServer.sh':
-    ensure  =>  present,
-    require => User['tomcat'],
-    content => 'puppet:///modules/tomcat/stopServer.sh',
-    path    => '/home/tomcat/release/stopServer.sh',
-    owner   => 'tomcat',
-    group   => 'tomcat',
-    mode    => '0640',
-  }
-  file { 'restartServer.sh':
-    ensure  =>  present,
-    require =>  User['tomcat'],
-    content => 'puppet:///modules/tomcat/restartServer.sh',
-    path    => '/home/tomcat/release/restartServer.sh',
-    owner   => 'tomcat',
-    group   => 'tomcat',
-    mode    => '0640',
-  }
-
-  file { 'component-deploy.sh':
-    ensure =>   present,
-    require =>  User['tomcat'],
-    content => 'puppet:///modules/tomcat/component-deploy.sh',
-    path   => '/home/tomcat/release/component-deploy.sh',
-    owner  => 'tomcat',
-    group  => 'tomcat',
-    mode => '0640',
-  }
-
-  file { 'component-war-deploy.sh':
-    ensure           =>  present,
-    require        =>  User['tomcat'],
-    content      => 'puppet:///modules/tomcat/component-war-deploy.sh',
-    path       => '/home/tomcat/release/component-war-deploy.sh',
-    owner    => 'tomcat',
-    group  => 'tomcat',
-    mode => '0640',
-  }
-
-
-file { 'static-deploy.sh':
-    ensure           =>  present,
-      require        =>  User['tomcat'],
-        content      => 'puppet:///modules/tomcat/static-deploy.sh',
-          path       => '/home/tomcat/release/static-deploy.sh',
-            owner    => 'tomcat',
-              group  => 'tomcat',
-                mode => '0640',
-                 }
 
 
 }
