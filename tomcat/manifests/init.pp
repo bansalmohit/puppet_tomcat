@@ -17,51 +17,18 @@ class tomcat($tomcat_port= 76 , $component=catalog-tomcat,){
       logoutput => true,
   }
 
-  # exec {"untar_folder":
-    # user      => 'tomcat',
-    #command   => "tar -xvf ${server}/base-tomcat.tar",
-    #logoutput => true,
-    
-    # refreshonly => true,
-    #}
     file { 'directory':
       name    => "${component}",
       path    => "${server}",
     recurse   => true,
     ensure    => [ ['directory'] , ['present']],
-      before  => [ File[ ['catalina.sh'] , ['server.xml']]],#Exec['untar_folder'] ],
+      before  => [ File[ ['catalina.sh'] , ['server.xml']]],
       owner   => 'tomcat',
       group   => 'tomcat',
       mode    => '0640',
      source => 'puppet:///modules/tomcat/usr/local/base-tomcat7/',
   
     }
-
-
-    #file { "root.xml":
-    #ensure => present,
-    #path    => "${server}/conf/Catalina/localhost/",
-    #name   => "ROOT.xml",
-    #content => template('tomcat5/root_template.erb'),
-
-    #  }
-
-    file {'bin':
-      path   => "${server}/bin",
-      owner  => 'tomcat',
-      group  => 'tomcat',
-      mode   => '0640',
-      ensure => 'directory',
-    }
-
-    file {'conf':
-      path                           => "${server}/conf",
-      owner                    => 'tomcat',
-      group              => 'tomcat',
-      mode         => '0640',
-      ensure => 'directory',
-    }
-
 
     file { "catalina.sh":
       ensure  => present,
